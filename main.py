@@ -444,7 +444,7 @@ def on_key_press(event):
                 print(cmds)
 
                 if cmds[0] == "quit":
-                    quit()
+                    root.destroy()
                 if cmds[0] == 'open':
                     if cmds[1] == 'app':
                         if cmds[2] == 'add':
