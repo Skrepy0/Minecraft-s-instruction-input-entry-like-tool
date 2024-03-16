@@ -675,19 +675,24 @@ def on_key_press(event):
                             import webbrowser
                             webbrowser.open(web_path[cmds[2]])
                 if cmds[0] == "screenshot":
+
                     if cmds[1] == 'full':
                         # 截取整个屏幕的截图
 
                         namenum = random.randint(-999999999999, 999999999999)
                         # 截取整个屏幕
                         screenshot = pyautogui.screenshot()
-
-                        # 保存截图到文件
                         global screenshot_save_path
-                        path = screenshot_save_path.replace("/","\\")
 
-                        subprocess.Popen(f'explorer /select,"{path}"')
-                        print(path)
+                        screenshot.save(screenshot_save_path+"/"+'{}.png'.format(namenum))
+
+                        if _options['open_path'] == 'true':
+
+                            path = screenshot_save_path.replace("/", "\\")
+
+                            subprocess.Popen(f'explorer /select,"{path}"')
+                            print(path)
+
 
                 if cmds[0] == 'settings':
                     def on_slider_change(value):
