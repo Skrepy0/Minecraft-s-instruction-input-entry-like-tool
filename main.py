@@ -72,7 +72,7 @@ with open(webnamedata_path, 'r') as file:
     # 读取文件的所有行并保存为一个列表
     # splitlines方法按行分割字符串，返回一个列表
     web_1 = file.read().splitlines()
-    print(web_1)
+
 
 
 
@@ -107,7 +107,7 @@ with open(appnamedata_path, 'r') as file:
     # 读取文件的所有行并保存为一个列表
     # splitlines方法按行分割字符串，返回一个列表
     app_1 = file.read().splitlines()
-    print(app_1)
+
 
 
 
@@ -138,19 +138,35 @@ for i in web_1:
 
 app_path = apppath_1
 web_path = webpath_1
-debug=['app_data','app_path_data','options_data','web_data','web_path_data']
+debug=['app_data','app_path_data','options_data','web_data','web_path_data','code']
 path = []
 browser = []
 completions_1 = ["open",                      "quit", "screenshot", "settings",'debug']
 completions_2 = [["app", "web",],        [""],       ["full"],         [""]      ,      debug]
-completions_3 = [app,      web,              [""],         [""],             [""],            [""]]
+completions_3 = [app,      web,              [""],         [""],             [""],            ['entry_widget.insert(tk.END,[<text>:str])','entry_widget.config(fg=[<color>:str])']]
 completions_4 = [[""],     [""],               [""],          [""],                [""],          [""]]
 completions = [completions_1, completions_2, completions_3, completions_4]
 
 
 def replace_last_word(sentence, new_word):
+    word = sentence.split(" ")
     # 将句子按空格分割成单词列表
-    words = sentence.split(" ")
+
+    if word[0] == '>/debug'and word[1] == 'code'and len(word)>=3:
+        words = sentence.split("code ")
+        if words:
+            # 替换最后一个单词
+            words[-1] = "code "+new_word
+            # 将单词列表重新组合成句子
+            new_sentence = ''.join(words)
+        else:
+            # 如果句子为空，返回原始句子或新单词（取决于您想要的行为）
+            new_sentence = ">"
+        return new_sentence
+    else:
+        words = sentence.split(" ")
+
+
     # 检查列表是否为空
     if words:
         # 替换最后一个单词
@@ -212,7 +228,7 @@ class AutoCompleteEntry(tk.Entry):
             self.cmdele.clear()
             for i in range(len(self.var.get().split(">/")[1].split(" "))):
                 self.cmdele.append(self.var.get().split(">/")[1].split(" ")[i])
-                print(self.cmdele)
+
         except:
             self.cmdele = [""]
 
@@ -229,13 +245,13 @@ class AutoCompleteEntry(tk.Entry):
 
     def on_key_press(self, event):
         if event.char == "\t":  # Tab key
-            print(self.cmdele)
+
             if len(self.cmdele) == 1:
                 for possible in self.completions_1:
                     if self.cmdele[0] in possible and self.cmdele[0] != possible:
                         original_sentence = self.var.get()
                         new_word = possible
-                        print(possible)
+
                         modified_sentence = ">/" + replace_last_word(original_sentence, new_word)
 
                         self.delete(0, tk.END)
@@ -323,6 +339,7 @@ class AutoCompleteEntry(tk.Entry):
                             self.insert(0, modified_sentence)
                             return "break"
                             break
+
             elif len(self.cmdele) == 3:
                 if self.cmdele[0] == "open":
                     if self.cmdele[1] == 'app':
@@ -371,6 +388,31 @@ class AutoCompleteEntry(tk.Entry):
                                 self.insert(0, modified_sentence)
                                 return "break"
                                 break
+            if self.cmdele[0] == 'debug' and self.cmdele[1] == 'code':
+                for possible in self.completions_3[5]:
+                    if self.cmdele[2] in possible and self.cmdele[2] != possible:
+                        original_sentence = self.var.get()
+                        new_word = possible
+                        # print(possible)
+                        modified_sentence = replace_last_word(original_sentence, new_word)
+
+                        self.delete(0, tk.END)
+                        self.insert(0, modified_sentence)
+                        return "break"
+                        break
+                    elif self.cmdele[2] == possible:
+                        if self.cmdele[2] == self.completions_3[5][0]:
+                            new_word = self.completions_3[5][1]
+                        else:
+                            new_word = self.completions_3[5][0]
+                        original_sentence = self.var.get()
+                        modified_sentence = replace_last_word(original_sentence, new_word)
+                        self.delete(0, tk.END)
+                        self.insert(0, modified_sentence)
+                        return "break"
+                        break
+
+
 
 
 def on_key_release(event):
@@ -419,7 +461,10 @@ def on_key_release(event):
             if cmd[2] in completions_3[index2]:
                 entry_widget.config(fg='purple')
             else:
-                entry_widget.config(fg='red')
+                if cmd[0] == 'debug' and cmd[1] == 'code':
+                    entry_widget.config(fg='pink')
+                else:
+                    entry_widget.config(fg='red')
         except:
             entry_widget.config(fg='red')
 
@@ -430,8 +475,9 @@ def on_key_press(event):
     if event.keysym == "Escape":
         root.withdraw()
         hotkey_window.deiconify()
-    try:
-        if event.char == '\r' or event.keysym == 'Return':
+
+    if event.char == '\r' or event.keysym == 'Return':
+        try:
             if entry_widget.get().split("<debug>:")[0] == '':
                 entry_widget.delete(0, tk.END)
             elif entry_widget.get().split("<Error>:")[0] == '':
@@ -441,7 +487,7 @@ def on_key_press(event):
             else:
                 cmd = entry_widget.get().split(">/")[1]
                 cmds = cmd.split(" ")
-                print(cmds)
+
 
                 if cmds[0] == "quit":
                     root.destroy()
@@ -546,6 +592,7 @@ def on_key_press(event):
                             listbox.pack(expand=True, fill='both')
                             lable = tk.Label(addapp, text=text)
                             lable.pack()
+                            entry_widget.delete(0, tk.END)
 
                         if cmds[2] in app and cmds[2] != 'add':
                             # 要打开的exe文件的路径
@@ -560,6 +607,7 @@ def on_key_press(event):
                             # 例如，使用time.sleep(seconds)来等待几秒钟
                             import time
                             time.sleep(1)  # 等待1秒以确保应用程序有时间启动
+                            entry_widget.delete(0, tk.END)
 
                             # 脚本继续执行其他任务...
                             # 注意：此时应用程序仍然在后台运行，Python脚本不会等待它结束
@@ -591,7 +639,7 @@ def on_key_press(event):
 
                                 def get():
                                     file_path = entry_.get()
-                                    print(file_path)
+
                                     webname = file_path.split("/")[2]
                                     web.append(webname)
                                     web_path[webname] = file_path
@@ -670,10 +718,12 @@ def on_key_press(event):
                             listbox.pack(expand=True, fill='both')
                             lable = tk.Label(webapp, text=text)
                             lable.pack()
+                            entry_widget.delete(0, tk.END)
 
                         if cmds[2] in web and cmds[2] != 'add':
                             import webbrowser
                             webbrowser.open(web_path[cmds[2]])
+                        entry_widget.delete(0, tk.END)
                 if cmds[0] == "screenshot":
 
                     if cmds[1] == 'full':
@@ -691,7 +741,8 @@ def on_key_press(event):
                             path = screenshot_save_path.replace("/", "\\")
 
                             subprocess.Popen(f'explorer /select,"{path}"')
-                            print(path)
+                        entry_widget.delete(0, tk.END)
+
 
 
                 if cmds[0] == 'settings':
@@ -823,12 +874,19 @@ def on_key_press(event):
                     slider.pack()
                     slider.place(x=9, y=200)
                     slider.set(_options['slider_value'])
+                    entry_widget.delete(0, tk.END)
+                if cmds[0] == 'debug' and cmds[1] == 'code':
+                    code = entry_widget.get().split('code ')[1]
+                    entry_widget.delete(0, tk.END)
 
-                entry_widget.delete(0, tk.END)
+                    exec(code)
+
+
 
                 if cmds[0] == 'debug':
                     if cmds[1] in debug:
                         text = ''
+                        print(entry_widget.get())
                         if cmds[1] == debug[0]:
                             text = "<debug>: " + debug[0] + ":" + str(app)
 
@@ -843,12 +901,17 @@ def on_key_press(event):
 
                         elif cmds[1] == debug[4]:
                             text = str(webpath_1)
+
+
                         entry_widget.insert(tk.END, text)
                         entry_widget.config(fg='green')
-                        entry_widget.config(fg='green')
-    except:
-        entry_widget.delete(0, tk.END)
-        entry_widget.insert(tk.END, '<Error>: '+'Please check if your command is correct.')
+
+        except:
+
+            entry_widget.delete(0, tk.END)
+            entry_widget.insert(tk.END, '<Error>: ' + 'Please check if your command is correct.')
+
+
 
 
 root = tk.Tk()
